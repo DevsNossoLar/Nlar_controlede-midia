@@ -1,0 +1,51 @@
+secrets:
+  npmrc:
+    file: ./.npmrc
+  HOST:
+    file: ./secrets/HOST.txt
+  USER:
+    file: ./secrets/USER.txt
+  PASSWORD:
+    file: ./secrets/PASSWORD.txt
+  DATABASE:
+    file: ./secrets/DATABASE.txt
+  NLAR_AUTH:
+    file: ./secrets/NLAR_AUTH.txt
+  NLAR_USER:
+    file: ./secrets/NLAR_USER.txt
+  NLAR_HOMEPAGE:
+    file: ./secrets/NLAR_HOMEPAGE.txt
+  X_Service-id:
+    file: ./secrets/X_Service-id.txt
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile
+      secrets:
+        - npmrc
+    image: nlar_controle-de-midia:local
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+    secrets:
+      - NLAR_AUTH
+      - NLAR_USER
+      - NLAR_HOMEPAGE
+      - HOST
+      - USER
+      - PASSWORD
+      - DATABASE
+      - X_Service-id
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      HOST_FILE: /run/secrets/HOST
+      USER_FILE: /run/secrets/USER
+      PASSWORD_FILE: /run/secrets/PASSWORD
+      DATABASE_FILE: /run/secrets/DATABASE
+      NLAR_AUTH_FILE: /run/secrets/NLAR_AUTH
+      NLAR_USER_FILE: /run/secrets/NLAR_USER
+      NLAR_HOMEPAGE_FILE: /run/secrets/NLAR_HOMEPAGE
+      X_Service-id_FILE: /run/secrets/X_Service-id

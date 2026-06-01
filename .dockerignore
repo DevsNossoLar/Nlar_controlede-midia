@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+.git
+.gitignore
+**/.env
+**/.env.*
+secrets
+apps/docs
+*.md
+Maio*.xlsx

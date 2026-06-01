@@ -1,0 +1,1 @@
+export const CONTRATOS_HISTORICO_TABLE = 'NS_controle_de_midia_contratos_historico'

@@ -1,0 +1,29 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tipos internos do monorepo (não publicado)",
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./tema": {
+      "types": "./dist/tema.d.mts",
+      "import": "./dist/tema.mjs",
+      "default": "./dist/tema.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/tema.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts src/tema.ts --format esm --dts --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "tsup": "^8.5.1",
+    "typescript": "5.9.2"
+  }
+}
