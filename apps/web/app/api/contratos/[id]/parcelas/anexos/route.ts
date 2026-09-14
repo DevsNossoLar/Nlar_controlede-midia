@@ -2,18 +2,18 @@ import {
   ContratosRepository,
   LancamentoFinanceiroAnexosRepository,
   LancamentoFinanceiroRepository,
-  decodeParcelaRef,
 } from "@repo/db";
 import { tokenAtivo } from "@/utils/tokenAtivo";
 import { parseCreateLancamentoFinanceiroAnexo } from "@/lib/schemas/lancamento-financeiro-anexo.schema";
-import { parseContratoIdParam } from "../../../../_utils";
+import { parseContratoIdParam } from "../../../_utils";
+import { parseParcelaQuery, type ParcelaQueryRef } from "../_parcela-query";
 
 const contratosRepository = new ContratosRepository();
 const lancamentosRepository = new LancamentoFinanceiroRepository();
 const anexosRepository = new LancamentoFinanceiroAnexosRepository();
 
 type RouteContext = {
-  params: Promise<{ id: string; parcelaRef: string }>;
+  params: Promise<{ id: string }>;
 };
 
 function statusByMessage(message: string): number {
@@ -37,6 +37,7 @@ function serializeAnexo(anexo: {
   nomeOriginal: string;
   mimeType: string;
   tamanhoBytes: number | null;
+  numeroNfe: string | null;
   criadoPor: string | null;
   criadoEm: Date;
   atualizadoEm: Date | null;
@@ -48,13 +49,27 @@ function serializeAnexo(anexo: {
     nomeOriginal: anexo.nomeOriginal,
     mimeType: anexo.mimeType,
     tamanhoBytes: anexo.tamanhoBytes,
+    numeroNfe: anexo.numeroNfe,
     criadoPor: anexo.criadoPor,
     criadoEm: anexo.criadoEm.toISOString(),
     atualizadoEm: anexo.atualizadoEm?.toISOString() ?? null,
   };
 }
 
-export async function GET(_: Request, { params }: RouteContext) {
+async function resolverLancamentoId(
+  contratoId: number,
+  ref: ParcelaQueryRef,
+): Promise<number | null> {
+  const lancamento = await lancamentosRepository.findByParcela(
+    contratoId,
+    ref.origem,
+    ref.erpChave,
+  );
+
+  return lancamento?.id ?? null;
+}
+
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const token = await tokenAtivo();
     if (!token.valido) {
@@ -64,15 +79,38 @@ export async function GET(_: Request, { params }: RouteContext) {
       );
     }
 
-    const { id, parcelaRef } = await params;
+    const { id } = await params;
     const contratoId = parseContratoIdParam(id);
     if (contratoId === null) {
       return Response.json({ message: "Id do contrato invalido." }, { status: 400 });
     }
 
-    const ref = decodeParcelaRef(decodeURIComponent(parcelaRef));
+    const url = new URL(request.url);
+    const ref = parseParcelaQuery(url.searchParams);
     if (!ref) {
       return Response.json({ message: "Referencia da parcela invalida." }, { status: 400 });
+    }
+
+    const anexoId = url.searchParams.get("anexoId")?.trim();
+
+    if (anexoId) {
+      const lancamentoId = await resolverLancamentoId(contratoId, ref);
+      if (lancamentoId === null) {
+        return Response.json({ message: "Parcela nao encontrada." }, { status: 404 });
+      }
+
+      const anexo = await anexosRepository.findById(contratoId, lancamentoId, anexoId);
+      if (!anexo) {
+        return Response.json({ message: "Anexo nao encontrado." }, { status: 404 });
+      }
+
+      return Response.json(
+        {
+          ...serializeAnexo(anexo),
+          arquivoBase64: anexo.arquivoBase64,
+        },
+        { status: 200 },
+      );
     }
 
     const contrato = await contratosRepository.findById(contratoId);
@@ -113,13 +151,14 @@ export async function POST(request: Request, { params }: RouteContext) {
       );
     }
 
-    const { id, parcelaRef } = await params;
+    const { id } = await params;
     const contratoId = parseContratoIdParam(id);
     if (contratoId === null) {
       return Response.json({ message: "Id do contrato invalido." }, { status: 400 });
     }
 
-    const ref = decodeParcelaRef(decodeURIComponent(parcelaRef));
+    const url = new URL(request.url);
+    const ref = parseParcelaQuery(url.searchParams);
     if (!ref) {
       return Response.json({ message: "Referencia da parcela invalida." }, { status: 400 });
     }
@@ -167,6 +206,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       mimeType: parsed.mime_type,
       tamanhoBytes: parsed.tamanho_bytes,
       arquivoBase64: parsed.arquivo_base64,
+      numeroNfe: parsed.numero_nfe,
       criadoPor: String(token.codFunc ?? ""),
     });
 
@@ -175,6 +215,53 @@ export async function POST(request: Request, { params }: RouteContext) {
     const message = error instanceof Error ? error.message : "erro desconhecido";
     return Response.json(
       { message: "Erro ao enviar anexo da parcela.", error: message },
+      { status: statusByMessage(message) },
+    );
+  }
+}
+
+export async function DELETE(request: Request, { params }: RouteContext) {
+  try {
+    const token = await tokenAtivo();
+    if (!token.valido) {
+      return Response.json(
+        { message: "Token de acesso invalido ou expirado." },
+        { status: 401 },
+      );
+    }
+
+    const { id } = await params;
+    const contratoId = parseContratoIdParam(id);
+    if (contratoId === null) {
+      return Response.json({ message: "Id do contrato invalido." }, { status: 400 });
+    }
+
+    const url = new URL(request.url);
+    const ref = parseParcelaQuery(url.searchParams);
+    if (!ref) {
+      return Response.json({ message: "Referencia da parcela invalida." }, { status: 400 });
+    }
+
+    const anexoId = url.searchParams.get("anexoId")?.trim();
+    if (!anexoId) {
+      return Response.json({ message: "anexoId obrigatorio." }, { status: 400 });
+    }
+
+    const lancamentoId = await resolverLancamentoId(contratoId, ref);
+    if (lancamentoId === null) {
+      return Response.json({ message: "Parcela nao encontrada." }, { status: 404 });
+    }
+
+    const removed = await anexosRepository.delete(contratoId, lancamentoId, anexoId);
+    if (!removed) {
+      return Response.json({ message: "Anexo nao encontrado." }, { status: 404 });
+    }
+
+    return Response.json({ ok: true }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "erro desconhecido";
+    return Response.json(
+      { message: "Erro ao remover anexo.", error: message },
       { status: statusByMessage(message) },
     );
   }

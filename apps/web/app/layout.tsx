@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "@DevsNossoLar/ui-theme/styles/globals.css";
+import "@/lib/ui-theme-tw-sources";
 
 import { AuthBoundary } from "./context/auth-boundary";
 import { Toaster } from "@/components/ui/sonner";

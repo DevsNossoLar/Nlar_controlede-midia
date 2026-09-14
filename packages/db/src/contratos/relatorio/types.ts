@@ -7,6 +7,7 @@ export type RelatorioMensalFiltros = {
   ano: number
   mes: number
   codLoja?: string | null
+  codFor?: string | null
   situacao?: RelatorioMensalSituacao
 }
 
@@ -55,7 +56,7 @@ export type RelatorioMensalTotais = {
 
 export type RelatorioMensalResult = {
   periodo: RelatorioMensalPeriodo
-  filtros: { codLoja: string | null; situacao: RelatorioMensalSituacao }
+  filtros: { codLoja: string | null; codFor: string | null; situacao: RelatorioMensalSituacao }
   totais: RelatorioMensalTotais
   porTipo: RelatorioMensalResumoTipo[]
   parcelas: RelatorioMensalParcela[]

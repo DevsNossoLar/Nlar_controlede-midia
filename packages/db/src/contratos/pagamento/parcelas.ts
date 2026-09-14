@@ -65,7 +65,7 @@ export async function getParcelasContrato(numPrevisao: number, codLoja: number):
       db.raw('CAP.ValorDoc AS ValorParcela'),
       'CAP.Vencimento',
       db.raw(
-        "CONCAT('ABERTO:', CAP.COD_ENTRADA, ':', CONVERT(VARCHAR(10), CAP.Vencimento, 23)) AS erpChave",
+        "CONCAT('ABERTO:', CAP.COD_ENTRADA, ':', CAP.NP, ':', CONVERT(VARCHAR(10), CAP.Vencimento, 23)) AS erpChave",
       ),
     ])
     .leftJoin('ENTRADAS as E', 'E.Cod_Entrada', 'CAP.COD_ENTRADA')
@@ -83,7 +83,7 @@ export async function getParcelasContrato(numPrevisao: number, codLoja: number):
       db.raw('PCB.ValorNota AS ValorParcela'),
       db.raw('NULL AS Vencimento'),
       db.raw(
-        "CONCAT('PAGO:', PCB.NumPrevisao, ':', PCB.CodLoja, ':', CAST(PCB.ValorNota AS VARCHAR(32))) AS erpChave",
+        "CONCAT('PAGO:', PCB.cod_entrada, ':', PCB.codprod, ':', CONVERT(VARCHAR(10), PCB.DataChegada, 23)) AS erpChave",
       ),
     ])
     .where('PCB.NumPrevisao', numPrevisao)

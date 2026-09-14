@@ -1,7 +1,35 @@
 @import "tailwindcss";
+/* Classes do ui-theme (chat/layout) — evita symlink quebrado no Docker/Windows */
+@source "./lib/ui-theme-tw-sources.ts";
+/* Reforço: tokens únicos que o extrator antigo omitia (composer file inputs) */
+@source inline("sr-only truncate hidden block contents invisible opacity-0");
 @import "@DevsNossoLar/ui-theme/styles/globals.css";
 
-@source "../../../../node_modules/@DevsNossoLar/ui-theme/src";
-@source "../../../../node_modules/@DevsNossoLar/ui-theme/dist";
-@plugin "tailwindcss-animate";
+:root {
+  --font-sans: var(--font-inter);
+  --font-mono: "Courier New", Courier, monospace;
+}
 
+/*
+  Composer da lib usa className="sr-only" em label + inputs file.
+  Turbopack/Next às vezes não emite o utilitário mesmo com @source — regra explícita.
+*/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Durante troca de tema: sem animar cores em listas grandes */
+html.theme-switching,
+html.theme-switching * {
+  transition: none !important;
+  animation: none !important;
+}

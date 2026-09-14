@@ -13,6 +13,7 @@ import type {
 const DEFAULT_FILTERS: RelatorioMensalFilters = {
   mesReferencia: mesReferenciaAtual(),
   codLoja: "",
+  codFor: "",
   situacao: "ambos",
 };
 

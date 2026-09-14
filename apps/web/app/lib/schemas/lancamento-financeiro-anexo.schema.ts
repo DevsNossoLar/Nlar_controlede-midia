@@ -10,6 +10,7 @@ export type CreateLancamentoFinanceiroAnexoBody = {
   mime_type: string;
   tamanho_bytes?: number | null;
   arquivo_base64: string;
+  numero_nfe?: string | null;
   valor?: number;
   num_previsao?: string | null;
   cod_loja?: string | null;
@@ -63,6 +64,23 @@ export function parseCreateLancamentoFinanceiroAnexo(
     }
   }
 
+  let numero_nfe: string | null = null;
+  if (
+    typeof data.numero_nfe !== "undefined" &&
+    data.numero_nfe !== null &&
+    data.numero_nfe !== ""
+  ) {
+    const value = String(data.numero_nfe).trim();
+    if (!/^\d{1,20}$/.test(value)) {
+      throw new Error("numero_nfe invalido: use apenas digitos (ate 20).");
+    }
+    numero_nfe = value;
+  }
+
+  if (tipo === "nota_fiscal" && !numero_nfe) {
+    throw new Error("numero_nfe obrigatorio para anexos de nota fiscal.");
+  }
+
   let valor: number | undefined;
   if (typeof data.valor !== "undefined" && data.valor !== null && data.valor !== "") {
     if (typeof data.valor !== "number" || !Number.isFinite(data.valor)) {
@@ -99,6 +117,7 @@ export function parseCreateLancamentoFinanceiroAnexo(
     mime_type: data.mime_type.trim(),
     tamanho_bytes,
     arquivo_base64: data.arquivo_base64,
+    numero_nfe,
     valor,
     num_previsao,
     cod_loja,

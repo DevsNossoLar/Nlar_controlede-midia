@@ -1,6 +1,7 @@
 "use client";
 
 import { RotateCcw, Search } from "lucide-react";
+import { FornecedorSelect } from "../../../contratos/_components/fornecedor-select";
 import { LojaSelect } from "../../../contratos/_components/loja-select";
 import {
   RELATORIO_SITUACAO_OPCOES,
@@ -24,7 +25,7 @@ export function RelatorioMensalFilters({
   onRefresh,
 }: RelatorioMensalFiltersProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-md border border-(--Text)/12 bg-white/60 p-4 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 rounded-md border border-(--Text)/12 bg-white/60 p-4 lg:grid-cols-6">
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="font-medium text-(--Text)/85">Mes de referencia</span>
         <input
@@ -58,7 +59,15 @@ export function RelatorioMensalFilters({
         onChange={(value) => onChange("codLoja", value)}
       />
 
-      <div className="flex items-end gap-2 lg:col-span-2">
+      <div className="lg:col-span-2">
+        <FornecedorSelect
+          label="Fornecedor"
+          value={filters.codFor}
+          onChange={(value) => onChange("codFor", value)}
+        />
+      </div>
+
+      <div className="flex items-end gap-2">
         <button
           type="button"
           onClick={onRefresh}

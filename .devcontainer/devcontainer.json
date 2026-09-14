@@ -1,0 +1,13 @@
+{
+  "name": "Nlar Controle de Midia (container node)",
+  "workspaceFolder": "/projetos/loja/acessoria/Nlar_controle-de-midia",
+  "remoteUser": "root",
+  "overrideCommand": false,
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.cwd": "/projetos/loja/acessoria/Nlar_controle-de-midia"
+      }
+    }
+  }
+}

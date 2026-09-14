@@ -1,7 +1,7 @@
 export const PARCELA_ORIGENS = ['ABERTO', 'PAGO'] as const
 export type ParcelaOrigem = (typeof PARCELA_ORIGENS)[number]
 
-export const LANCAMENTO_ANEXO_TIPOS = ['comprovante', 'boleto', 'outro'] as const
+export const LANCAMENTO_ANEXO_TIPOS = ['comprovante', 'boleto', 'nota_fiscal', 'outro'] as const
 export type LancamentoAnexoTipo = (typeof LANCAMENTO_ANEXO_TIPOS)[number]
 
 export const LANCAMENTO_ANEXO_MAX_ARQUIVOS = 10
@@ -53,6 +53,7 @@ export type LancamentoAnexoMetadata = {
   nomeOriginal: string
   mimeType: string
   tamanhoBytes: number | null
+  numeroNfe: string | null
   criadoPor: string | null
   criadoEm: Date
   atualizadoEm: Date | null
@@ -70,6 +71,7 @@ export type CriarLancamentoAnexoInput = {
   mimeType: string
   tamanhoBytes?: number | null
   arquivoBase64: string
+  numeroNfe?: string | null
   criadoPor?: string | null
 }
 
@@ -80,6 +82,7 @@ export type LancamentoAnexoRow = {
   nome_original: string
   mime_type: string
   tamanho_bytes: number | string | null
+  numero_nfe: string | null
   arquivo_base64: string
   created_by: string | null
   created_at: string | Date

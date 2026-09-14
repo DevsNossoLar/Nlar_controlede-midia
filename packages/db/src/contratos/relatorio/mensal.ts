@@ -22,6 +22,11 @@ function parseCodLojaNumerico(codLoja?: string | null): number | null {
   return Number.isFinite(numero) && numero > 0 ? numero : null
 }
 
+function parseCodFor(codFor?: string | null): string | null {
+  const valor = codFor?.trim()
+  return valor ? valor : null
+}
+
 function normalizarParcela(
   row: RelatorioMensalParcelaRow,
   situacao: ParcelaOrigem,
@@ -55,6 +60,7 @@ export async function listParcelasAbertasPorMes(
 
   const { inicio, fim } = calcularPeriodoMensal(filtros.ano, filtros.mes)
   const codLojaNum = parseCodLojaNumerico(filtros.codLoja)
+  const codFor = parseCodFor(filtros.codFor)
 
   const query = db(`${CONTRATOS_TABLE} as C`)
     .select([
@@ -70,7 +76,7 @@ export async function listParcelasAbertasPorMes(
       db.raw('CAP.ValorDoc AS valorParcela'),
       db.raw('CAP.Vencimento AS dataReferencia'),
       db.raw(
-        "CONCAT('ABERTO:', CAP.COD_ENTRADA, ':', CONVERT(VARCHAR(10), CAP.Vencimento, 23)) AS erpChave",
+        "CONCAT('ABERTO:', CAP.COD_ENTRADA, ':', CAP.NP, ':', CONVERT(VARCHAR(10), CAP.Vencimento, 23)) AS erpChave",
       ),
     ])
     .joinRaw(
@@ -87,6 +93,10 @@ export async function listParcelasAbertasPorMes(
     query.andWhere('CAP.CodLoja', codLojaNum)
   }
 
+  if (codFor) {
+    query.andWhere('C.codFor', codFor)
+  }
+
   const rows = (await query.orderBy('CAP.Vencimento', 'asc').orderBy('C.titulo', 'asc')) as RelatorioMensalParcelaRow[]
 
   return rows.map((row) => normalizarParcela(row, 'ABERTO'))
@@ -99,6 +109,7 @@ export async function listParcelasPagasPorMes(
 
   const { inicio, fim } = calcularPeriodoMensal(filtros.ano, filtros.mes)
   const codLojaNum = parseCodLojaNumerico(filtros.codLoja)
+  const codFor = parseCodFor(filtros.codFor)
   const dataPagamentoCol = PREVISAO_COMPRA_BAIXAS_DATA_PAGAMENTO
 
   const query = db(`${CONTRATOS_TABLE} as C`)
@@ -115,7 +126,7 @@ export async function listParcelasPagasPorMes(
       db.raw('PCB.ValorNota AS valorParcela'),
       db.raw(`PCB.[${dataPagamentoCol}] AS dataReferencia`),
       db.raw(
-        "CONCAT('PAGO:', PCB.NumPrevisao, ':', PCB.CodLoja, ':', CAST(PCB.ValorNota AS VARCHAR(32))) AS erpChave",
+        "CONCAT('PAGO:', PCB.cod_entrada, ':', PCB.codprod, ':', CONVERT(VARCHAR(10), PCB.DataChegada, 23)) AS erpChave",
       ),
     ])
     .joinRaw(
@@ -132,6 +143,10 @@ export async function listParcelasPagasPorMes(
     query.andWhere('PCB.CodLoja', codLojaNum)
   }
 
+  if (codFor) {
+    query.andWhere('C.codFor', codFor)
+  }
+
   const rows = (await query
     .orderBy(`PCB.${dataPagamentoCol}`, 'asc')
     .orderBy('C.titulo', 'asc')) as RelatorioMensalParcelaRow[]
@@ -146,6 +161,7 @@ export async function resumoPrevistoPorTipo(
 
   const { inicio, fim } = calcularPeriodoMensal(filtros.ano, filtros.mes)
   const codLoja = filtros.codLoja?.trim() || null
+  const codFor = parseCodFor(filtros.codFor)
 
   /** Vigencia no mes + valor_mensal => previsto mensal (com ou sem data_fim). Sem valor_mensal: valor_total no mes da data_inicio. */
   const query = db(`${CONTRATOS_TABLE} as C`)
@@ -171,6 +187,10 @@ export async function resumoPrevistoPorTipo(
 
   if (codLoja) {
     query.andWhere('C.codLoja', codLoja)
+  }
+
+  if (codFor) {
+    query.andWhere('C.codFor', codFor)
   }
 
   const rows = (await query) as RelatorioMensalPrevistoRow[]

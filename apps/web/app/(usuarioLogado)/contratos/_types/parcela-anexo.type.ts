@@ -1,4 +1,4 @@
-export type ParcelaAnexoTipo = "comprovante" | "boleto" | "outro";
+export type ParcelaAnexoTipo = "comprovante" | "boleto" | "nota_fiscal" | "outro";
 
 export type ParcelaAnexo = {
   id: number;
@@ -7,6 +7,7 @@ export type ParcelaAnexo = {
   nomeOriginal: string;
   mimeType: string;
   tamanhoBytes: number | null;
+  numeroNfe: string | null;
   criadoPor: string | null;
   criadoEm: string;
   atualizadoEm: string | null;
@@ -22,6 +23,7 @@ export type UploadParcelaAnexoPayload = {
   mime_type: string;
   tamanho_bytes: number;
   arquivo_base64: string;
+  numero_nfe?: string | null;
   valor: number;
   num_previsao?: string | null;
   cod_loja?: string | null;
@@ -31,10 +33,16 @@ export type UploadParcelaAnexoPayload = {
 export const PARCELA_ANEXO_TIPO_LABEL: Record<ParcelaAnexoTipo, string> = {
   comprovante: "Comprovante",
   boleto: "Boleto",
+  nota_fiscal: "Nota Fiscal",
   outro: "Outro",
 };
 
-export const PARCELA_ANEXO_TIPOS: ParcelaAnexoTipo[] = ["comprovante", "boleto", "outro"];
+export const PARCELA_ANEXO_TIPOS: ParcelaAnexoTipo[] = [
+  "comprovante",
+  "boleto",
+  "nota_fiscal",
+  "outro",
+];
 
 export const PARCELA_ANEXO_MAX_ARQUIVOS = 10;
 export const PARCELA_ANEXO_MAX_BYTES = 5 * 1024 * 1024;

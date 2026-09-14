@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Banknote, Loader2, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
@@ -154,64 +154,70 @@ export function ContratoParcelasDialog({
                     <tbody>
                       {parcelas.map((parcela, index) => {
                         const parcelaKey = `${parcela.origem}:${parcela.erpChave}`;
+                        const anexosAbertos =
+                          parcelaAnexosAberta &&
+                          `${parcelaAnexosAberta.origem}:${parcelaAnexosAberta.erpChave}` ===
+                            parcelaKey;
 
                         return (
-                          <tr
-                            key={`${parcelaKey}-${index}`}
-                            className="border-b border-(--Text)/8 last:border-0"
-                          >
-                            <td className="p-2.5">
-                              <span
-                                className={
-                                  parcela.tipoParcela === "PAGO"
-                                    ? "inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800"
-                                    : "inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
-                                }
-                              >
-                                {labelTipoParcela(parcela.tipoParcela)}
-                              </span>
-                            </td>
-                            <td className="p-2.5">{formatarMoeda(parcela.valorParcela)}</td>
-                            <td className="p-2.5">
-                              {parcela.vencimento
-                                ? formatarData(parcela.vencimento.slice(0, 10))
-                                : "-"}
-                            </td>
-                            <td className="p-2.5">
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-1.5 rounded-md border border-(--Text)/15 px-2.5 py-1.5 text-xs font-medium hover:bg-black/5"
-                                onClick={() =>
-                                  setParcelaAnexosAberta((atual) =>
-                                    atual &&
-                                    `${atual.origem}:${atual.erpChave}` === parcelaKey
-                                      ? null
-                                      : parcela,
-                                  )
-                                }
-                              >
-                                <Paperclip className="h-3.5 w-3.5" />
-                                {parcela.quantidadeAnexos > 0
-                                  ? `${parcela.quantidadeAnexos} arquivo(s)`
-                                  : "Anexos"}
-                              </button>
-                            </td>
-                          </tr>
+                          <Fragment key={`${parcelaKey}-${index}`}>
+                            <tr className="border-b border-(--Text)/8">
+                              <td className="p-2.5">
+                                <span
+                                  className={
+                                    parcela.tipoParcela === "PAGO"
+                                      ? "inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800"
+                                      : "inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+                                  }
+                                >
+                                  {labelTipoParcela(parcela.tipoParcela)}
+                                </span>
+                              </td>
+                              <td className="p-2.5">{formatarMoeda(parcela.valorParcela)}</td>
+                              <td className="p-2.5">
+                                {parcela.vencimento
+                                  ? formatarData(parcela.vencimento.slice(0, 10))
+                                  : "-"}
+                              </td>
+                              <td className="p-2.5">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-(--Text)/15 px-2.5 py-1.5 text-xs font-medium hover:bg-black/5"
+                                  onClick={() =>
+                                    setParcelaAnexosAberta((atual) =>
+                                      atual &&
+                                      `${atual.origem}:${atual.erpChave}` === parcelaKey
+                                        ? null
+                                        : parcela,
+                                    )
+                                  }
+                                >
+                                  <Paperclip className="h-3.5 w-3.5" />
+                                  {parcela.quantidadeAnexos > 0
+                                    ? `${parcela.quantidadeAnexos} arquivo(s)`
+                                    : "Anexos"}
+                                </button>
+                              </td>
+                            </tr>
+                            {anexosAbertos ? (
+                              <tr className="border-b border-(--Text)/8 last:border-0">
+                                <td colSpan={4} className="bg-zinc-50/60 p-2.5">
+                                  <ParcelaAnexosPanel
+                                    contratoId={contrato.id}
+                                    parcela={parcela}
+                                    onClose={() => setParcelaAnexosAberta(null)}
+                                    onAnexosChange={() => void carregar()}
+                                  />
+                                </td>
+                              </tr>
+                            ) : null}
+                          </Fragment>
                         );
                       })}
                     </tbody>
                   </table>
                 </div>
               )}
-
-              {parcelaAnexosAberta ? (
-                <ParcelaAnexosPanel
-                  contratoId={contrato.id}
-                  parcela={parcelaAnexosAberta}
-                  onClose={() => setParcelaAnexosAberta(null)}
-                  onAnexosChange={() => void carregar()}
-                />
-              ) : null}
             </>
           ) : null}
         </div>

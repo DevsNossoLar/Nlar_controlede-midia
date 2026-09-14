@@ -9,8 +9,8 @@ const config = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
     '../../node_modules/@DevsNossoLar/ui-theme/src/**/*.{ts,tsx}',
-    '../../node_modules/@DevsNossoLar/ui-theme/dist/**/*.{js,mjs}',
-	],
+    '../../node_modules/@DevsNossoLar/ui-theme/dist/**/*.{js,mjs,css}',
+  ],
   prefix: "",
   theme: {
   	container: {

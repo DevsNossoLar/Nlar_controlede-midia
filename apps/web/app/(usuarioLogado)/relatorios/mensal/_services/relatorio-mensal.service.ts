@@ -41,6 +41,10 @@ function buildQuery(filters: RelatorioMensalFilters): string {
     params.set("codLoja", filters.codLoja.trim());
   }
 
+  if (filters.codFor.trim()) {
+    params.set("codFor", filters.codFor.trim());
+  }
+
   return params.toString();
 }
 

@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3010",
+    "dev": "next dev --port 3005",
     "build": "next build",
     "start": "next start --port 3010",
     "lint": "eslint --max-warnings 0",
@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@repo/types": "*",
-    "@DevsNossoLar/ui-theme": "^0.1.8",
+    "@DevsNossoLar/ui-theme": "^0.1.33",
     "@DevsNossoLar/user-shared": "^1.0.0",
     "@repo/ui": "*",
     "@repo/db": "*",

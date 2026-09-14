@@ -152,6 +152,7 @@ export async function GET(request: Request) {
       ano: filtros.ano,
       mes: filtros.mes,
       codLoja: filtros.codLoja,
+      codFor: filtros.codFor,
     };
 
     const [abertasBase, pagasBase, previstoPorTipo] = await Promise.all([
@@ -190,6 +191,7 @@ export async function GET(request: Request) {
       },
       filtros: {
         codLoja: filtros.codLoja,
+        codFor: filtros.codFor,
         situacao: filtros.situacao as RelatorioMensalSituacao,
       },
       totais,

@@ -4,9 +4,14 @@ WORKDIR /repo
 
 COPY package.json package-lock.json turbo.json ./
 COPY packages ./packages
+# lockfile/workspaces inclui apps/docs; precisa existir para npm ci
+COPY apps/docs/package.json ./apps/docs/package.json
 COPY apps/web ./apps/web
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
+RUN test -s package-lock.json
+
+RUN --mount=type=secret,id=npmrc,target=/tmp/npmrc \
+    NPM_CONFIG_USERCONFIG=/tmp/npmrc npm ci
 
 # Compila @repo/types, @repo/ui, @repo/db e apps/web (dependsOn do turbo)
 RUN npx turbo run build --filter=web
@@ -18,7 +23,7 @@ WORKDIR /repo
 
 RUN apk add --no-cache dumb-init curl
 ENV NODE_ENV=production \
-    HOSTNAME=0.0.0.0 
+    HOSTNAME=0.0.0.0
 
 COPY --chown=node:node --from=build /repo /repo
 

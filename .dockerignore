@@ -7,6 +7,9 @@
 **/.env
 **/.env.*
 secrets
-apps/docs
+apps/web/tw-sources
 *.md
 Maio*.xlsx
+!package-lock.json
+!package.json
+!turbo.json

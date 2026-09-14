@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Paperclip, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,6 +36,7 @@ export function ParcelaAnexosPanel({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [tipoUpload, setTipoUpload] = useState<ParcelaAnexoTipo>("comprovante");
+  const [numeroNfe, setNumeroNfe] = useState("");
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
@@ -56,6 +57,12 @@ export function ParcelaAnexosPanel({
 
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0) return;
+
+    const numeroNfeLimpo = numeroNfe.trim();
+    if (tipoUpload === "nota_fiscal" && !numeroNfeLimpo) {
+      toast.error("Informe o numero da NF-e antes de enviar a nota fiscal.");
+      return;
+    }
 
     const restantes = PARCELA_ANEXO_MAX_ARQUIVOS - anexos.length;
     if (restantes <= 0) {
@@ -85,6 +92,7 @@ export function ParcelaAnexosPanel({
           mime_type: file.type || "application/octet-stream",
           tamanho_bytes: file.size,
           arquivo_base64: base64,
+          numero_nfe: tipoUpload === "nota_fiscal" ? numeroNfeLimpo : null,
           valor: parcela.valorParcela,
           num_previsao: String(parcela.numPrevisao),
           cod_loja: String(parcela.codLoja),
@@ -92,6 +100,7 @@ export function ParcelaAnexosPanel({
         });
       }
 
+      setNumeroNfe("");
       toast.success("Upload finalizado.");
       await carregar();
       onAnexosChange?.();
@@ -126,13 +135,17 @@ export function ParcelaAnexosPanel({
   }
 
   const limiteAtingido = anexos.length >= PARCELA_ANEXO_MAX_ARQUIVOS;
+  const anexosOrdenados = useMemo(
+    () => [...anexos].sort((a, b) => a.criadoEm.localeCompare(b.criadoEm)),
+    [anexos],
+  );
 
   return (
-    <div className="mt-3 rounded-md border border-(--Text)/12 bg-zinc-50/80 p-4">
+    <div className="rounded-md border border-(--Text)/12 bg-zinc-50/80 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Paperclip className="h-4 w-4 text-(--Text)/55" />
-          Comprovantes da parcela
+          Anexos da parcela
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-(--Text)/55">
@@ -153,7 +166,13 @@ export function ParcelaAnexosPanel({
         Ate {PARCELA_ANEXO_MAX_ARQUIVOS} arquivos por parcela, maximo de 5MB cada.
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+      <div
+        className={`mt-3 grid grid-cols-1 gap-3 ${
+          tipoUpload === "nota_fiscal"
+            ? "sm:grid-cols-[180px_180px_1fr]"
+            : "sm:grid-cols-[180px_1fr]"
+        }`}
+      >
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-(--Text)/85">Tipo do arquivo</span>
           <select
@@ -169,6 +188,22 @@ export function ParcelaAnexosPanel({
             ))}
           </select>
         </label>
+
+        {tipoUpload === "nota_fiscal" ? (
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-(--Text)/85">Numero da NF-e</span>
+            <input
+              className="h-10 rounded-md border border-(--Text)/15 bg-white/80 px-3 text-sm outline-none transition focus:border-(--ThemaVerdeEscuro) disabled:opacity-60"
+              type="text"
+              inputMode="numeric"
+              placeholder="Ex.: 12345"
+              maxLength={20}
+              value={numeroNfe}
+              onChange={(event) => setNumeroNfe(event.target.value.replace(/\D/g, ""))}
+              disabled={uploading || limiteAtingido}
+            />
+          </label>
+        ) : null}
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-(--Text)/85">Enviar arquivos</span>
@@ -202,16 +237,18 @@ export function ParcelaAnexosPanel({
         <p className="mt-3 text-sm text-(--Text)/60">Carregando anexos...</p>
       ) : (
         <ul className="mt-4 flex flex-col gap-2">
-          {anexos.map((anexo) => (
+          {anexosOrdenados.map((anexo, index) => (
             <li
               key={anexo.id}
               className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--Text)/10 bg-white/65 p-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-(--Text)">{anexo.nomeOriginal}</p>
-                <p className="text-xs text-(--Text)/55">
-                  {PARCELA_ANEXO_TIPO_LABEL[anexo.tipo]} -{" "}
-                  {formatarTamanhoArquivo(anexo.tamanhoBytes)}
+                <p className="text-sm font-semibold text-(--Text)">
+                  Anexo {index + 1} — {PARCELA_ANEXO_TIPO_LABEL[anexo.tipo] ?? anexo.tipo}
+                  {anexo.numeroNfe ? ` nº ${anexo.numeroNfe}` : ""}
+                </p>
+                <p className="truncate text-xs text-(--Text)/55">
+                  {anexo.nomeOriginal} · {formatarTamanhoArquivo(anexo.tamanhoBytes)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -240,7 +277,7 @@ export function ParcelaAnexosPanel({
       {!loading && anexos.length === 0 ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-(--Text)/55">
           <Upload className="h-4 w-4" />
-          Nenhum comprovante cadastrado.
+          Nenhum anexo cadastrado.
         </p>
       ) : null}
     </div>

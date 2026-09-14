@@ -24,6 +24,7 @@ const METADATA_COLUMNS = [
   'nome_original',
   'mime_type',
   'tamanho_bytes',
+  'numero_nfe',
   'created_by',
   'created_at',
   'updated_at',
@@ -101,6 +102,7 @@ export class LancamentoFinanceiroAnexosRepository {
     const mimeType = input.mimeType.trim()
     const arquivoBase64 = this.normalizarBase64(input.arquivoBase64)
     const tamanhoBytes = this.resolverTamanhoBytes(input.tamanhoBytes, arquivoBase64)
+    const numeroNfe = this.validarNumeroNfe(tipo, input.numeroNfe)
 
     if (!nomeOriginal) {
       throw new Error('nome_original obrigatorio.')
@@ -127,6 +129,7 @@ export class LancamentoFinanceiroAnexosRepository {
         nome_original: nomeOriginal,
         mime_type: mimeType,
         tamanho_bytes: tamanhoBytes,
+        numero_nfe: numeroNfe,
         arquivo_base64: arquivoBase64,
         created_by: input.criadoPor?.trim() || null,
         created_at: agora,
@@ -196,6 +199,27 @@ export class LancamentoFinanceiroAnexosRepository {
     return value
   }
 
+  private validarNumeroNfe(
+    tipo: LancamentoAnexoTipo,
+    numeroNfe: string | null | undefined,
+  ): string | null {
+    const value = numeroNfe?.trim() ?? ''
+
+    if (tipo !== 'nota_fiscal') {
+      return null
+    }
+
+    if (!value) {
+      throw new Error('numero_nfe obrigatorio para anexos de nota fiscal.')
+    }
+
+    if (!/^\d{1,20}$/.test(value)) {
+      throw new Error('numero_nfe invalido: use apenas digitos (ate 20).')
+    }
+
+    return value
+  }
+
   private normalizarBase64(value: string): string {
     const trimmed = value.trim()
     if (!trimmed) return ''
@@ -223,6 +247,7 @@ export class LancamentoFinanceiroAnexosRepository {
       nomeOriginal: row.nome_original,
       mimeType: row.mime_type,
       tamanhoBytes: this.toNumberOrNull(row.tamanho_bytes),
+      numeroNfe: row.numero_nfe ?? null,
       criadoPor: row.created_by,
       criadoEm: this.toDate(row.created_at),
       atualizadoEm: row.updated_at ? this.toDate(row.updated_at) : null,

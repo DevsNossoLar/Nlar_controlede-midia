@@ -40,7 +40,9 @@ Escrita permitida somente em `NS_controle_de_midia_*` (contratos, anexos, lancam
 4. `009_alter_contratos_add_pagamento.sql`
 5. `010_alter_contratos_add_num_previsao_cotacao.sql` (pagamento + num previsao/cotacao; idempotente se 009 ja foi aplicado)
 6. `011_recreate_lancamento_financeiro_parcelas.sql` (lancamentos por parcela + anexos comprovantes)
-7. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
+7. `012_alter_lancamento_financeiro_anexos_add_nota_fiscal.sql` (tipo nota_fiscal nos anexos de parcela)
+8. `013_alter_lancamento_financeiro_anexos_add_numero_nfe.sql` (numero da NF-e nos anexos de parcela)
+9. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
 
 ## Banco legado com GUID em contratos
 
@@ -50,4 +52,6 @@ Escrita permitida somente em `NS_controle_de_midia_*` (contratos, anexos, lancam
 4. `009_alter_contratos_add_pagamento.sql`
 5. `010_alter_contratos_add_num_previsao_cotacao.sql` (pagamento + num previsao/cotacao; idempotente se 009 ja foi aplicado)
 6. `011_recreate_lancamento_financeiro_parcelas.sql` (lancamentos por parcela + anexos comprovantes)
-7. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
+7. `012_alter_lancamento_financeiro_anexos_add_nota_fiscal.sql` (tipo nota_fiscal nos anexos de parcela)
+8. `013_alter_lancamento_financeiro_anexos_add_numero_nfe.sql` (numero da NF-e nos anexos de parcela)
+9. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)

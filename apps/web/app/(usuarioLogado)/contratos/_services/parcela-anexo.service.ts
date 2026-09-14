@@ -19,40 +19,29 @@ async function parseJson<T>(response: Response): Promise<T> {
   return json;
 }
 
-function encodeBase64Url(value: string): string {
-  const bytes = new TextEncoder().encode(value);
-  let binary = "";
-
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function encodeParcelaRef(
-  origem: ParcelaContrato["origem"],
-  erpChave: ParcelaContrato["erpChave"],
+function anexosUrl(
+  contratoId: number | string,
+  parcela: Pick<ParcelaContrato, "origem" | "erpChave">,
+  anexoId?: number | string,
 ): string {
-  return encodeBase64Url(JSON.stringify({ origem, erpChave }));
-}
-
-function parcelaRefPath(parcela: Pick<ParcelaContrato, "origem" | "erpChave">): string {
-  return encodeURIComponent(encodeParcelaRef(parcela.origem, parcela.erpChave));
+  const params = new URLSearchParams({
+    origem: parcela.origem,
+    erpChave: parcela.erpChave,
+  });
+  if (anexoId !== undefined) {
+    params.set("anexoId", String(anexoId));
+  }
+  return withBasePath(`/api/contratos/${contratoId}/parcelas/anexos?${params.toString()}`);
 }
 
 export async function listarAnexosParcela(
   contratoId: number | string,
   parcela: Pick<ParcelaContrato, "origem" | "erpChave">,
 ): Promise<ParcelaAnexo[]> {
-  const ref = parcelaRefPath(parcela);
-  const response = await fetch(
-    withBasePath(`/api/contratos/${contratoId}/parcelas/${ref}/anexos`),
-    {
-      credentials: "include",
-      cache: "no-store",
-    },
-  );
+  const response = await fetch(anexosUrl(contratoId, parcela), {
+    credentials: "include",
+    cache: "no-store",
+  });
 
   return parseJson<ParcelaAnexo[]>(response);
 }
@@ -62,14 +51,10 @@ export async function buscarAnexoParcela(
   parcela: Pick<ParcelaContrato, "origem" | "erpChave">,
   anexoId: number | string,
 ): Promise<ParcelaAnexoCompleto> {
-  const ref = parcelaRefPath(parcela);
-  const response = await fetch(
-    withBasePath(`/api/contratos/${contratoId}/parcelas/${ref}/anexos/${anexoId}`),
-    {
-      credentials: "include",
-      cache: "no-store",
-    },
-  );
+  const response = await fetch(anexosUrl(contratoId, parcela, anexoId), {
+    credentials: "include",
+    cache: "no-store",
+  });
 
   return parseJson<ParcelaAnexoCompleto>(response);
 }
@@ -79,16 +64,12 @@ export async function enviarAnexoParcela(
   parcela: ParcelaContrato,
   payload: UploadParcelaAnexoPayload,
 ): Promise<ParcelaAnexo> {
-  const ref = parcelaRefPath(parcela);
-  const response = await fetch(
-    withBasePath(`/api/contratos/${contratoId}/parcelas/${ref}/anexos`),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const response = await fetch(anexosUrl(contratoId, parcela), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   return parseJson<ParcelaAnexo>(response);
 }
@@ -98,14 +79,10 @@ export async function removerAnexoParcela(
   parcela: Pick<ParcelaContrato, "origem" | "erpChave">,
   anexoId: number | string,
 ): Promise<void> {
-  const ref = parcelaRefPath(parcela);
-  const response = await fetch(
-    withBasePath(`/api/contratos/${contratoId}/parcelas/${ref}/anexos/${anexoId}`),
-    {
-      method: "DELETE",
-      credentials: "include",
-    },
-  );
+  const response = await fetch(anexosUrl(contratoId, parcela, anexoId), {
+    method: "DELETE",
+    credentials: "include",
+  });
 
   await parseJson<{ ok: boolean }>(response);
 }

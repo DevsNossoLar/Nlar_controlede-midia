@@ -4,6 +4,7 @@ export type RelatorioMensalQueryParams = {
   ano: number;
   mes: number;
   codLoja: string | null;
+  codFor: string | null;
   situacao: RelatorioMensalSituacao;
 };
 
@@ -35,10 +36,13 @@ export function parseRelatorioMensalFilters(
   const codLojaRaw = params.get("codLoja")?.trim();
   const codLoja = codLojaRaw ? codLojaRaw : null;
 
+  const codForRaw = params.get("codFor")?.trim();
+  const codFor = codForRaw ? codForRaw : null;
+
   const situacaoRaw = (params.get("situacao")?.trim().toLowerCase() ?? "aberto") as RelatorioMensalSituacao;
   if (!SITUACOES_VALIDAS.has(situacaoRaw)) {
     throw new Error("Situacao invalida.");
   }
 
-  return { ano, mes, codLoja, situacao: situacaoRaw };
+  return { ano, mes, codLoja, codFor, situacao: situacaoRaw };
 }
