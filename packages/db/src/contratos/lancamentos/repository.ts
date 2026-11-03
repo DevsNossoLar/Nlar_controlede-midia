@@ -87,6 +87,31 @@ export class LancamentoFinanceiroRepository {
     return this.toMetadata(created)
   }
 
+  async listObservacoesByContrato(contratoId: string | number) {
+    await dbConnection()
+    const id = parseContratoId(contratoId)
+    if (id === null) return []
+    const rows = await db<LancamentoFinanceiroRow>(LANCAMENTO_FINANCEIROS_TABLE)
+      .where({ contrato_id: id })
+      .select('origem', 'erp_chave', 'observacao')
+    return rows.map((row) => ({
+      origem: row.origem,
+      erpChave: row.erp_chave,
+      observacao: row.observacao ?? null,
+    }))
+  }
+
+  async updateObservacao(contratoId: number, lancamentoId: number, observacao: string | null): Promise<void> {
+    await dbConnection()
+    if (observacao !== null && observacao.length > 2000) {
+      throw new Error('Observacao excede o limite de 2000 caracteres.')
+    }
+    const updated = await db<LancamentoFinanceiroRow>(LANCAMENTO_FINANCEIROS_TABLE)
+      .where({ id: lancamentoId, contrato_id: contratoId })
+      .update({ observacao: observacao?.trim() || null, updated_at: new Date() })
+    if (!updated) throw new Error('Lancamento nao encontrado.')
+  }
+
   async countAnexosByContrato(contratoId: string | number): Promise<LancamentoAnexoCount[]> {
     await dbConnection()
 
@@ -126,6 +151,7 @@ export class LancamentoFinanceiroRepository {
       numPrevisao: row.num_previsao,
       codLoja: row.cod_loja,
       valor: Number(row.valor),
+      observacao: row.observacao ?? null,
       dataVencimento: row.data_vencimento
         ? this.toDate(row.data_vencimento)
         : null,

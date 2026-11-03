@@ -34,6 +34,7 @@ export type RelatorioMensalParcela = {
   dataReferencia: string
   erpChave: string
   quantidadeAnexos: number
+  observacao: string | null
 }
 
 export type RelatorioMensalResumoTipo = {

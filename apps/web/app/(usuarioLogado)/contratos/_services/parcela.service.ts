@@ -14,6 +14,21 @@ async function parseJson<T>(response: Response): Promise<T> {
   return json;
 }
 
+export async function salvarObservacaoParcela(
+  contratoId: number | string,
+  parcela: Pick<ParcelaContrato, "origem" | "erpChave">,
+  observacao: string,
+): Promise<{ observacao: string | null }> {
+  const params = new URLSearchParams({ origem: parcela.origem, erpChave: parcela.erpChave });
+  const response = await fetch(withBasePath(`/api/contratos/${contratoId}/parcelas/observacao?${params}`), {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ observacao }),
+  });
+  return parseJson<{ observacao: string | null }>(response);
+}
+
 export async function listarParcelasContrato(
   contratoId: number | string,
 ): Promise<ParcelaContrato[]> {

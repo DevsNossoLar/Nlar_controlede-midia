@@ -8,6 +8,7 @@ import { listarParcelasContrato } from "../_services/parcela.service";
 import type { Contrato } from "../_types/contrato.type";
 import type { ParcelaContrato } from "../_types/parcela.type";
 import { formatarData, formatarMoeda } from "../_utils/contrato-format";
+import { ParcelaObservacao } from "./parcela-observacao";
 import { ParcelaAnexosPanel } from "./parcela-anexos-panel";
 
 type ContratoParcelasDialogProps = {
@@ -88,7 +89,7 @@ export function ContratoParcelasDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="parcelas-dialog-title"
-        className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-(--Text)/15 bg-white shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-(--Text)/15 bg-white shadow-xl"
       >
         <div className="flex items-start justify-between gap-3 border-b border-(--Text)/10 px-4 py-3">
           <div>
@@ -149,6 +150,7 @@ export function ContratoParcelasDialog({
                         <th className="p-2.5 text-left font-semibold">Valor</th>
                         <th className="p-2.5 text-left font-semibold">Vencimento</th>
                         <th className="p-2.5 text-left font-semibold">Anexos</th>
+                        <th className="p-2.5 text-left font-semibold">Observação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -198,10 +200,13 @@ export function ContratoParcelasDialog({
                                     : "Anexos"}
                                 </button>
                               </td>
+                              <td className="p-2.5">
+                                <ParcelaObservacao contratoId={contrato.id} parcela={parcela} />
+                              </td>
                             </tr>
                             {anexosAbertos ? (
                               <tr className="border-b border-(--Text)/8 last:border-0">
-                                <td colSpan={4} className="bg-zinc-50/60 p-2.5">
+                                <td colSpan={5} className="bg-zinc-50/60 p-2.5">
                                   <ParcelaAnexosPanel
                                     contratoId={contrato.id}
                                     parcela={parcela}

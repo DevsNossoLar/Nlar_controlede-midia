@@ -1,6 +1,9 @@
 import {
+  apenasDigitos,
   buscarFornecedores,
+  ehBuscaPorDocumento,
   SEARCH_MIN_CODE_LENGTH,
+  SEARCH_MIN_DOCUMENTO_LENGTH,
   SEARCH_MIN_TEXT_LENGTH,
 } from '@repo/db';
 import { tokenAtivo } from '@/utils/tokenAtivo';
@@ -10,6 +13,7 @@ type FornecedorRow = {
   nomeFor?: string | null;
   nomeFantasia?: string | null;
   NomeFantasia?: string | null;
+  CGC?: string | null;
 };
 
 type FornecedorResponse = {
@@ -17,6 +21,7 @@ type FornecedorResponse = {
   nomeFor: string | null;
   nomeFantasia: string | null;
   NomeFantasia: string | null;
+  cgc: string | null;
 };
 
 function normalizarFornecedor(row: FornecedorRow): FornecedorResponse {
@@ -27,15 +32,24 @@ function normalizarFornecedor(row: FornecedorRow): FornecedorResponse {
     nomeFor: row.nomeFor ?? null,
     nomeFantasia,
     NomeFantasia: nomeFantasia,
+    cgc: row.CGC?.trim() || null,
   };
 }
 
 function parseBuscaFornecedor(searchParams: URLSearchParams): {
-  params: { q?: string; codFor?: string };
+  params: { q?: string; codFor?: string; documento?: string };
   error?: string;
 } {
+  const documento = searchParams.get('documento')?.trim();
   const codFor = searchParams.get('codFor')?.trim();
   const q = searchParams.get('q')?.trim();
+
+  if (documento) {
+    if (apenasDigitos(documento).length < SEARCH_MIN_DOCUMENTO_LENGTH) {
+      return { params: {}, error: 'Informe ao menos 11 digitos do CPF/CNPJ.' };
+    }
+    return { params: { documento } };
+  }
 
   if (codFor) {
     if (codFor.length < SEARCH_MIN_CODE_LENGTH) {
@@ -46,6 +60,10 @@ function parseBuscaFornecedor(searchParams: URLSearchParams): {
 
   if (!q) {
     return { params: {}, error: 'Informe um termo de busca (minimo 2 caracteres).' };
+  }
+
+  if (ehBuscaPorDocumento(q)) {
+    return { params: { documento: q } };
   }
 
   if (/^\d+$/.test(q)) {

@@ -59,12 +59,13 @@ export function RelatorioMensalParcelasTable({
             <th className="p-3 text-left font-semibold">Contrato</th>
             <th className="p-3 text-left font-semibold">Num. cotacao</th>
             <th className="p-3 text-left font-semibold">Anexos</th>
+            <th className="p-3 text-left font-semibold">Observação</th>
           </tr>
         </thead>
         <tbody>
           {parcelas.length === 0 ? (
             <tr>
-              <td colSpan={mostrarSituacao ? 9 : 8} className="p-4 text-(--Text)/65">
+              <td colSpan={mostrarSituacao ? 10 : 9} className="p-4 text-(--Text)/65">
                 {mensagemVazia}
               </td>
             </tr>
@@ -117,6 +118,7 @@ export function RelatorioMensalParcelasTable({
                     <span className="text-(--Text)/45">-</span>
                   )}
                 </td>
+                <td className="max-w-sm whitespace-pre-wrap break-words p-3">{parcela.observacao ?? "-"}</td>
               </tr>
             ))
           )}

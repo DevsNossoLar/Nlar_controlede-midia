@@ -18,7 +18,7 @@ import type { TipoContrato } from "@/(usuarioLogado)/contratos/_types/contrato.t
 
 const lancamentosRepository = new LancamentoFinanceiroRepository();
 
-type RelatorioMensalParcelaBase = Omit<RelatorioMensalParcela, "quantidadeAnexos">;
+type RelatorioMensalParcelaBase = Omit<RelatorioMensalParcela, "quantidadeAnexos" | "observacao">;
 
 function statusByMessage(message: string): number {
   const lower = message.toLowerCase();
@@ -44,15 +44,23 @@ function agruparPorTipo(
   return mapa;
 }
 
-async function enriquecerQuantidadeAnexos(
+async function enriquecerMetadadosParcelas(
   parcelas: RelatorioMensalParcelaBase[],
 ): Promise<RelatorioMensalParcela[]> {
   const contratoIds = [...new Set(parcelas.map((parcela) => parcela.contratoId))];
   const contagensPorContrato = new Map<number, Map<string, number>>();
 
+  const observacoesPorContrato = new Map<number, Map<string, string | null>>();
+
   await Promise.all(
     contratoIds.map(async (contratoId) => {
-      const contagens = await lancamentosRepository.countAnexosByContrato(contratoId);
+      const [contagens, observacoes] = await Promise.all([
+        lancamentosRepository.countAnexosByContrato(contratoId),
+        lancamentosRepository.listObservacoesByContrato(contratoId),
+      ]);
+      observacoesPorContrato.set(contratoId, new Map(
+        observacoes.map((item) => [`${item.origem}:${item.erpChave}`, item.observacao]),
+      ));
       const mapaChaves = new Map(
         contagens.map((item) => [`${item.origem}:${item.erpChave}`, item.quantidade]),
       );
@@ -64,6 +72,7 @@ async function enriquecerQuantidadeAnexos(
     const mapaChaves = contagensPorContrato.get(parcela.contratoId);
     return {
       ...parcela,
+      observacao: observacoesPorContrato.get(parcela.contratoId)?.get(`${parcela.situacao}:${parcela.erpChave}`) ?? null,
       quantidadeAnexos: mapaChaves?.get(`${parcela.situacao}:${parcela.erpChave}`) ?? 0,
     };
   });
@@ -169,7 +178,7 @@ export async function GET(request: Request) {
       pagasBase,
       filtros.situacao as RelatorioMensalSituacao,
     );
-    const parcelas = ordenarParcelas(await enriquecerQuantidadeAnexos(parcelasBase));
+    const parcelas = ordenarParcelas(await enriquecerMetadadosParcelas(parcelasBase));
 
     const abertas = abertasBase;
     const pagas = pagasBase;

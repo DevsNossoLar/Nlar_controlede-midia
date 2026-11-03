@@ -16,6 +16,7 @@ export type FornecedorResumo = {
   codFor: string;
   nomeFor: string | null;
   nomeFantasia: string | null;
+  cgc: string | null;
 };
 
 export type LojaResumo = {
@@ -45,6 +46,7 @@ type FornecedorRow = {
   nomeFor?: string | null;
   nomeFantasia?: string | null;
   NomeFantasia?: string | null;
+  CGC?: string | null;
 };
 
 type LojaRow = {
@@ -67,6 +69,7 @@ export function normalizarFornecedor(row: FornecedorRow): FornecedorResumo {
     codFor: String(row.codFor ?? ""),
     nomeFor: row.nomeFor ?? null,
     nomeFantasia: row.nomeFantasia ?? row.NomeFantasia ?? null,
+    cgc: row.CGC?.trim() || null,
   };
 }
 

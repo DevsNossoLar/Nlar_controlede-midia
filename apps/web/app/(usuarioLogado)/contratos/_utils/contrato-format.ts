@@ -46,10 +46,29 @@ export function formatarDataHora(value: string | null | undefined): string {
   }).format(date);
 }
 
+export function formatarCpfCnpj(value: string | null | undefined): string {
+  if (!value) return "";
+  const digitos = value.replace(/\D/g, "");
+
+  if (digitos.length === 11) {
+    return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  }
+  if (digitos.length === 14) {
+    return digitos.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  }
+
+  return value.trim();
+}
+
 export function formatarFornecedor(fornecedor: FornecedorOption | null, codFor?: string): string {
   if (!fornecedor) return codFor ? `${codFor} - Fornecedor nao localizado` : "-";
 
-  const partes = [fornecedor.codFor, fornecedor.nomeFor, fornecedor.nomeFantasia]
+  const partes = [
+    fornecedor.codFor,
+    fornecedor.nomeFor,
+    fornecedor.nomeFantasia,
+    formatarCpfCnpj(fornecedor.cgc),
+  ]
     .filter(Boolean)
     .map(String);
 

@@ -1,13 +1,65 @@
 {
-  "name": "Nlar Controle de Midia (container node)",
-  "workspaceFolder": "/projetos/loja/acessoria/Nlar_controle-de-midia",
-  "remoteUser": "root",
-  "overrideCommand": false,
+  // Sem acento: a extensao Dev Containers decodifica a saida da CLI com a code page do Windows.
+  "name": "Nlar Controle de Midia",
+  "build": { "dockerfile": "Dockerfile" },
+
+  // node_modules em volumes: evita sobrescrever os binarios Windows do host
+  // quando o repositorio e aberto a partir de uma pasta do Windows.
+  "mounts": [
+    "source=nlar-midia-nm-root-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=nlar-midia-nm-web-${devcontainerId},target=${containerWorkspaceFolder}/apps/web/node_modules,type=volume",
+    "source=nlar-midia-nm-docs-${devcontainerId},target=${containerWorkspaceFolder}/apps/docs/node_modules,type=volume",
+    "source=nlar-midia-nm-db-${devcontainerId},target=${containerWorkspaceFolder}/packages/db/node_modules,type=volume",
+    "source=nlar-midia-nm-types-${devcontainerId},target=${containerWorkspaceFolder}/packages/types/node_modules,type=volume",
+    "source=nlar-midia-nm-ui-${devcontainerId},target=${containerWorkspaceFolder}/packages/ui/node_modules,type=volume",
+    "source=nlar-midia-nm-eslint-${devcontainerId},target=${containerWorkspaceFolder}/packages/eslint-config/node_modules,type=volume",
+    "source=nlar-midia-nm-tsconfig-${devcontainerId},target=${containerWorkspaceFolder}/packages/typescript-config/node_modules,type=volume",
+    // Cache do Next fora do drive do Windows: la ele e lento e o lockfile falha por permissao.
+    "source=nlar-midia-next-web-${devcontainerId},target=${containerWorkspaceFolder}/apps/web/.next,type=volume"
+  ],
+
+  "runArgs": [
+    // DNS explicito: o DNS interno do Docker Desktop (192.168.65.7) falha com frequencia no WSL2.
+    "--dns=8.8.8.8",
+    "--dns=1.1.1.1",
+    // Publicada em 0.0.0.0 no Windows: o web tambem e acessado pelo IP da rede (allowedDevOrigins no next.config.js).
+    "-p=0.0.0.0:3005:3005"
+  ],
+  // Sem forward do Cursor: ele so escuta em localhost e disputaria a porta publicada acima.
+  "portsAttributes": {
+    "3005": { "label": "web (Next)", "onAutoForward": "ignore" }
+  },
+
+  "containerEnv": {
+    // Token do GitHub Packages (read:packages) para @DevsNossoLar/*, lido do ambiente do host.
+    "NPM_TOKEN": "${localEnv:NPM_TOKEN}",
+    "NODE_AUTH_TOKEN": "${localEnv:NODE_AUTH_TOKEN}",
+    // O drive do Windows montado nao gera eventos de arquivo no Linux; sem polling o hot reload nao dispara.
+    "WATCHPACK_POLLING": "true",
+    "CHOKIDAR_USEPOLLING": "true",
+    // Credenciais do banco pelos arquivos de secrets/: no Linux USER ja vale "node" e o .env nao sobrescreve.
+    "HOST_FILE": "${containerWorkspaceFolder}/secrets/HOST.txt",
+    "USER_FILE": "${containerWorkspaceFolder}/secrets/USER.txt",
+    "PASSWORD_FILE": "${containerWorkspaceFolder}/secrets/PASSWORD.txt",
+    "DATABASE_FILE": "${containerWorkspaceFolder}/secrets/DATABASE.txt"
+  },
+
+  // Remove CR: o editor no Windows pode salvar o script com CRLF.
+  "postCreateCommand": "sed 's/\\r$//' .devcontainer/post-create.sh | bash",
+
   "customizations": {
     "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "openai.chatgpt"
+      ],
       "settings": {
-        "terminal.integrated.cwd": "/projetos/loja/acessoria/Nlar_controle-de-midia"
+        "terminal.integrated.cwd": "${containerWorkspaceFolder}"
       }
     }
-  }
+  },
+
+  "remoteUser": "node"
 }

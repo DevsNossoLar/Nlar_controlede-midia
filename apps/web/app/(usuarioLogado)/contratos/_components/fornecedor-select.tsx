@@ -3,7 +3,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "../_hooks/use-debounced-value";
 import { useFornecedorSearch } from "../_hooks/use-fornecedor-search";
-import { buscarFornecedorPorCodigo } from "../_services/fornecedor.service";
+import {
+  buscarFornecedorPorCodigo,
+  buscarFornecedores,
+} from "../_services/fornecedor.service";
 import type { FornecedorOption } from "../_types/fornecedor.type";
 import { formatarFornecedor } from "../_utils/contrato-format";
 import {
@@ -12,10 +15,17 @@ import {
   normalizarCodigo,
 } from "../_utils/entity-select";
 import {
+  documentoSemZerosAEsquerda,
+  ehBuscaPorDocumento,
   mensagemBuscaMinima,
   podeBuscar,
   SEARCH_DEBOUNCE_MS,
 } from "../_utils/search";
+
+function mesmoDocumento(option: FornecedorOption, entrada: string): boolean {
+  const cgc = documentoSemZerosAEsquerda(option.cgc ?? "");
+  return cgc !== "" && cgc === documentoSemZerosAEsquerda(entrada);
+}
 
 type FornecedorSelectProps = {
   value: string;
@@ -35,6 +45,10 @@ function encontrarFornecedorPorEntrada(
   if (!texto) return null;
 
   const lista = [...cache.values(), ...options];
+
+  if (ehBuscaPorDocumento(texto)) {
+    return lista.find((option) => mesmoDocumento(option, texto)) ?? null;
+  }
 
   const porCodigo = lista.find((option) => codigosEquivalentes(option.codFor, texto));
   if (porCodigo) return porCodigo;
@@ -107,6 +121,17 @@ export function FornecedorSelect({
     onChange(cod);
   }
 
+  // O datalist do navegador compara o texto digitado com o rotulo (CNPJ mascarado),
+  // entao CNPJ digitado so com numeros nunca aparece como sugestao.
+  useEffect(() => {
+    const texto = inputValue.trim();
+    if (!ehBuscaPorDocumento(texto) || texto !== debouncedSearch.trim()) return;
+
+    const encontrado = options.find((option) => mesmoDocumento(option, texto));
+    if (encontrado) confirmarSelecao(encontrado);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
   function handleChange(nextValue: string) {
     setInputValue(nextValue);
 
@@ -147,7 +172,20 @@ export function FornecedorSelect({
       return;
     }
 
-    if (/^\d+$/.test(texto)) {
+    if (ehBuscaPorDocumento(texto)) {
+      try {
+        const lista = await buscarFornecedores(texto);
+        const fornecedor =
+          lista.find((item) => mesmoDocumento(item, texto)) ??
+          (lista.length === 1 ? lista[0] : undefined);
+        if (fornecedor) {
+          confirmarSelecao(fornecedor);
+          return;
+        }
+      } catch {
+        // mantem texto para o usuario corrigir
+      }
+    } else if (/^\d+$/.test(texto)) {
       try {
         const fornecedor = await buscarFornecedorPorCodigo(texto);
         if (fornecedor) {
@@ -179,7 +217,7 @@ export function FornecedorSelect({
         value={inputValue}
         onChange={(event) => handleChange(event.target.value)}
         onBlur={() => void handleBlur()}
-        placeholder="Min. 2 caracteres (nome) ou codigo"
+        placeholder="Nome (min. 2 letras), codigo ou CPF/CNPJ"
         disabled={disabled}
       />
       <datalist id={listId}>

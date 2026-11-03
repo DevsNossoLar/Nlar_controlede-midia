@@ -30,7 +30,7 @@ function parseCodFor(codFor?: string | null): string | null {
 function normalizarParcela(
   row: RelatorioMensalParcelaRow,
   situacao: ParcelaOrigem,
-): Omit<RelatorioMensalParcela, 'quantidadeAnexos'> {
+): Omit<RelatorioMensalParcela, 'quantidadeAnexos' | 'observacao'> {
   const dataReferencia = serializarData(row.dataReferencia)
   if (!dataReferencia) {
     throw new Error('Parcela sem data de referencia no relatorio mensal.')
@@ -55,7 +55,7 @@ function normalizarParcela(
 
 export async function listParcelasAbertasPorMes(
   filtros: RelatorioMensalFiltros,
-): Promise<Omit<RelatorioMensalParcela, 'quantidadeAnexos'>[]> {
+): Promise<Omit<RelatorioMensalParcela, 'quantidadeAnexos' | 'observacao'>[]> {
   await dbConnection()
 
   const { inicio, fim } = calcularPeriodoMensal(filtros.ano, filtros.mes)
@@ -104,7 +104,7 @@ export async function listParcelasAbertasPorMes(
 
 export async function listParcelasPagasPorMes(
   filtros: RelatorioMensalFiltros,
-): Promise<Omit<RelatorioMensalParcela, 'quantidadeAnexos'>[]> {
+): Promise<Omit<RelatorioMensalParcela, 'quantidadeAnexos' | 'observacao'>[]> {
   await dbConnection()
 
   const { inicio, fim } = calcularPeriodoMensal(filtros.ano, filtros.mes)

@@ -7,4 +7,5 @@ export type ParcelaContrato = {
   vencimento: string | null;
   erpChave: string;
   quantidadeAnexos: number;
+  observacao: string | null;
 };

@@ -16,6 +16,7 @@ export type LancamentoFinanceiroMetadata = {
   codLoja: string | null
   valor: number
   dataVencimento: Date | null
+  observacao: string | null
   criadoPor: string | null
   criadoEm: Date
   atualizadoEm: Date | null
@@ -41,6 +42,7 @@ export type LancamentoFinanceiroRow = {
   cod_loja: string | null
   valor: number | string
   data_vencimento: string | Date | null
+  observacao: string | null
   created_by: string | null
   created_at: string | Date
   updated_at: string | Date | null

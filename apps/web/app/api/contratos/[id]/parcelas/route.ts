@@ -80,13 +80,18 @@ export async function GET(_: Request, { params }: RouteContext) {
       );
     }
 
-    const [parcelasRaw, contagens] = await Promise.all([
+    const [parcelasRaw, contagens, observacoes] = await Promise.all([
       getParcelasContrato(numPrevisao, codLoja),
       lancamentosRepository.countAnexosByContrato(contratoId),
+      lancamentosRepository.listObservacoesByContrato(contratoId),
     ]);
 
     const contagensPorChave = new Map(
       contagens.map((item) => [`${item.origem}:${item.erpChave}`, item.quantidade]),
+    );
+
+    const observacoesPorChave = new Map(
+      observacoes.map((item) => [`${item.origem}:${item.erpChave}`, item.observacao]),
     );
 
     const parcelas = parcelasRaw.map((parcela) => {
@@ -95,6 +100,7 @@ export async function GET(_: Request, { params }: RouteContext) {
       return {
         ...base,
         quantidadeAnexos: contagensPorChave.get(chave) ?? 0,
+        observacao: observacoesPorChave.get(chave) ?? null,
       };
     });
 

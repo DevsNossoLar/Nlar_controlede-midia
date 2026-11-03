@@ -42,7 +42,8 @@ Escrita permitida somente em `NS_controle_de_midia_*` (contratos, anexos, lancam
 6. `011_recreate_lancamento_financeiro_parcelas.sql` (lancamentos por parcela + anexos comprovantes)
 7. `012_alter_lancamento_financeiro_anexos_add_nota_fiscal.sql` (tipo nota_fiscal nos anexos de parcela)
 8. `013_alter_lancamento_financeiro_anexos_add_numero_nfe.sql` (numero da NF-e nos anexos de parcela)
-9. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
+9. `014_alter_lancamento_financeiros_add_observacao.sql` (observacao por parcela; executar manualmente antes de usar o campo)
+10. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
 
 ## Banco legado com GUID em contratos
 
@@ -54,4 +55,15 @@ Escrita permitida somente em `NS_controle_de_midia_*` (contratos, anexos, lancam
 6. `011_recreate_lancamento_financeiro_parcelas.sql` (lancamentos por parcela + anexos comprovantes)
 7. `012_alter_lancamento_financeiro_anexos_add_nota_fiscal.sql` (tipo nota_fiscal nos anexos de parcela)
 8. `013_alter_lancamento_financeiro_anexos_add_numero_nfe.sql` (numero da NF-e nos anexos de parcela)
-9. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
+9. `014_alter_lancamento_financeiros_add_observacao.sql` (observacao por parcela; executar manualmente antes de usar o campo)
+10. `008_create_NS_controle_de_midia_contratos_historico.sql` (opcional)
+
+## Observacao por parcela
+
+O script `014_alter_lancamento_financeiros_add_observacao.sql` deve ser revisado e executado manualmente antes de disponibilizar o novo campo. Ele adiciona `observacao NVARCHAR(2000) NULL` na tabela de lancamentos do modulo. A aplicacao nao executa esse script automaticamente.
+
+Em Contratos > Parcelas, cada linha permite salvar, editar ou apagar a propria observacao. O relatorio mensal tambem exibe esse texto. A gravacao acontece somente quando o usuario salva na interface, sem escrita nas tabelas do ERP.
+
+A observacao segue a identificacao existente das parcelas: `contrato_id`, `origem` e `erp_chave`. Como o ERP usa chaves diferentes para aberto e pago, a transferencia automatica de observacoes entre essas duas origens nao esta implementada.
+
+Validacao local sem banco: `node --test apps/web/tests/parcela-observacao.test.cjs` (executar na raiz do repositorio).

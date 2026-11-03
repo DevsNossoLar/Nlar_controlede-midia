@@ -3,7 +3,7 @@
 import { withBasePath } from "@/utils/cliet";
 import type { ApiErrorResponse } from "../_types/contrato.type";
 import type { FornecedorOption } from "../_types/fornecedor.type";
-import { podeBuscar } from "../_utils/search";
+import { apenasDigitos, ehBuscaPorDocumento, podeBuscar } from "../_utils/search";
 
 async function parseJson<T>(response: Response): Promise<T> {
   const json = (await response.json().catch(() => ({}))) as T & ApiErrorResponse;
@@ -20,7 +20,8 @@ function paramsDaBusca(search: string): URLSearchParams | null {
   if (!podeBuscar(query)) return null;
 
   const params = new URLSearchParams();
-  if (/^\d+$/.test(query)) params.set("codFor", query);
+  if (ehBuscaPorDocumento(query)) params.set("documento", apenasDigitos(query));
+  else if (/^\d+$/.test(query)) params.set("codFor", query);
   else params.set("q", query);
 
   return params;
