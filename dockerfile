@@ -4,8 +4,7 @@ WORKDIR /repo
 
 COPY package.json package-lock.json turbo.json ./
 COPY packages ./packages
-# lockfile/workspaces inclui apps/docs; precisa existir para npm ci
-COPY apps/docs/package.json ./apps/docs/package.json
+
 COPY apps/web ./apps/web
 
 RUN test -s package-lock.json
